@@ -1,0 +1,49 @@
+name: sudo_cash
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path_provider: ^2.1.2
+  sqflite_common_ffi: ^2.3.0
+  fluttertoast: ^8.0.0
+  path: ^1.8.0
+  intl: ^0.18.1
+  provider: ^6.0.0 
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/login_image.png
+    - assets/images/welcome.png
+    - assets/images/sun.png
+    - assets/images/moon_2.jpg
+    - assets/images/morning.png
+    - assets/images/moon_sleep.jpg
+    - assets/images/good_night.jpg
+    - assets/images/sleeping.jpg
+    - assets/images/good_sun.png
+    - assets/images/afternoon.jpg
+    - assets/images/morning_bg.png
+    - assets/images/wakeUp.png
+    - assets/images/background.jpg
+    - assets/images/wakeUp2.png
+    - assets/images/morning_bg5.png
+
+  fonts:
+    - family: Sora
+      fonts:
+        - asset: assets/fonts/Sora.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
