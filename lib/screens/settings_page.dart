@@ -19,6 +19,26 @@ class Settings extends StatelessWidget {
     required this.onBack,
   });
 
+  void _showBottomSheet(BuildContext context, Widget child) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16.0),
+          topRight: Radius.circular(16.0),
+        ),
+      ),
+      isScrollControlled: true, // This allows full-screen height adjustments
+      builder: (context) {
+        return Padding(
+          padding: MediaQuery.of(context)
+              .viewInsets, // Moves sheet up on keyboard open
+          child: child,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,128 +76,33 @@ class Settings extends StatelessWidget {
 
               /// Modify Account Info Button
               InkWell(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16.0),
-                        topRight: Radius.circular(16.0),
-                      ),
-                    ),
-                    isScrollControlled: true,
-                    builder: (context) {
-                      return UserBottomSheet(
-                        username: username,
-                        password: password,
-                        userId: userId,
-                      );
-                    },
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.people, size: 24),
-                          const SizedBox(width: 10),
-                          const Text(
-                            "Modify your account info",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const Icon(Icons.arrow_forward_ios, size: 18),
-                    ],
-                  ),
+                onTap: () => _showBottomSheet(
+                  context,
+                  UserBottomSheet(
+                      username: username, password: password, userId: userId),
                 ),
+                child: _buildSettingsItem(
+                    Icons.people, "Modify your account info"),
               ),
 
               /// Set a New Password Button
               InkWell(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16.0),
-                        topRight: Radius.circular(16.0),
-                      ),
-                    ),
-                    isScrollControlled: true,
-                    builder: (context) {
-                      return PasswordBottomSheet(
-                        username: username,
-                        password: password,
-                        userId: userId,
-                      );
-                    },
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.add, size: 24),
-                          const SizedBox(width: 10),
-                          const Text(
-                            "Set a new password",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const Icon(Icons.arrow_forward_ios, size: 18),
-                    ],
-                  ),
+                onTap: () => _showBottomSheet(
+                  context,
+                  PasswordBottomSheet(
+                      username: username, password: password, userId: userId),
                 ),
+                child: _buildSettingsItem(Icons.add, "Set a new password"),
               ),
 
               /// Modify Password Button
               InkWell(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16.0),
-                        topRight: Radius.circular(16.0),
-                      ),
-                    ),
-                    isScrollControlled: true,
-                    builder: (context) {
-                      return ModifyBottomSheet(
-                        username: username,
-                        password: password,
-                        userId: userId,
-                      );
-                    },
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.edit, size: 24),
-                          const SizedBox(width: 10),
-                          const Text(
-                            "Modify the password",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const Icon(Icons.arrow_forward_ios, size: 18),
-                    ],
-                  ),
+                onTap: () => _showBottomSheet(
+                  context,
+                  ModifyBottomSheet(
+                      username: username, password: password, userId: userId),
                 ),
+                child: _buildSettingsItem(Icons.edit, "Modify the password"),
               ),
 
               /// Delete Password Button
@@ -189,67 +114,20 @@ class Settings extends StatelessWidget {
                         buildDeleteConfirmationDialog(context, userId),
                   );
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.delete, size: 24),
-                          const SizedBox(width: 10),
-                          const Text(
-                            "Delete the Password",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const Icon(Icons.arrow_forward_ios, size: 18),
-                    ],
-                  ),
-                ),
+                child: _buildSettingsItem(Icons.delete, "Delete the Password"),
               ),
 
               /// Change Currency Button
               InkWell(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16.0),
-                        topRight: Radius.circular(16.0),
-                      ),
-                    ),
-                    isScrollControlled: true,
-                    builder: (context) {
-                      return const CurrencyBottomSheet();
-                    },
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.currency_exchange, size: 24),
-                          const SizedBox(width: 10),
-                          const Text(
-                            "Change the Currency",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const Icon(Icons.arrow_forward_ios, size: 18),
-                    ],
-                  ),
+                onTap: () => _showBottomSheet(
+                  context,
+                  const CurrencyBottomSheet(),
                 ),
+                child: _buildSettingsItem(
+                    Icons.currency_exchange, "Change the Currency"),
               ),
 
               const SizedBox(height: 20),
-
               const Text(
                 "MANUAL",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
@@ -269,6 +147,26 @@ class Settings extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// A helper widget to build each settings item
+  Widget _buildSettingsItem(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 10),
+              Text(text, style: const TextStyle(fontSize: 16)),
+            ],
+          ),
+          const Icon(Icons.arrow_forward_ios, size: 18),
+        ],
       ),
     );
   }

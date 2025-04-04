@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:provider/provider.dart';
 import 'package:sudo_cash/database/database_helper.dart';
 import 'package:sudo_cash/providers/expense_provider.dart';
@@ -7,8 +6,6 @@ import 'package:sudo_cash/signUp.dart';
 import 'package:sudo_cash/wallet_page.dart';
 
 void main() {
-  sqfliteFfiInit();
-  databaseFactory = databaseFactoryFfi;
   runApp(const MyApp());
 }
 
@@ -24,7 +21,8 @@ class _MyAppState extends State<MyApp> {
 
   void _toggleTheme() {
     setState(() {
-      _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+      _themeMode =
+          _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     });
   }
 
@@ -83,7 +81,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     Image.asset(
                       'assets/images/login_image.png',
                       width: double.infinity,
+                      fit: BoxFit.cover,
                     ),
+                    const SizedBox(height: 20),
                     const Text(
                       "Log in to your account",
                       style: TextStyle(
@@ -95,8 +95,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     TextFormField(
                       controller: userController,
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(50.0)),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 15),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(50.0),
+                        ),
                         hintText: 'Enter your username',
                         labelText: 'Username',
                       ),
@@ -106,8 +109,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       controller: pwdController,
                       obscureText: true,
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(50.0)),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 15),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(50.0),
+                        ),
                         hintText: 'Your Password',
                         labelText: 'Password',
                       ),
@@ -126,10 +132,12 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         child: ElevatedButton(
                           onPressed: () async {
-                            String myUser = userController.text;
+                            String myUser = userController.text.trim();
                             String myPwd = pwdController.text;
                             List<Map<String, dynamic>> credentials =
-                                await dbhelper.getUsersWithCredentials(myUser, myPwd);
+                                await dbhelper.getUsersWithCredentials(
+                                    myUser, myPwd);
+
                             if (credentials.isNotEmpty) {
                               int userId = credentials.first['UserID'];
                               String userpwd = credentials.first['pwd'];
@@ -147,14 +155,18 @@ class _MyHomePageState extends State<MyHomePage> {
                             } else {
                               if (count < 3) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Your information doesn't match!")),
+                                  const SnackBar(
+                                    content:
+                                        Text("Your information doesn't match!"),
+                                  ),
                                 );
                                 setState(() => count++);
                               } else {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => SignUpPage(toggleTheme: widget.toggleTheme),
+                                    builder: (context) => SignUpPage(
+                                        toggleTheme: widget.toggleTheme),
                                   ),
                                 );
                               }
@@ -164,12 +176,15 @@ class _MyHomePageState extends State<MyHomePage> {
                             backgroundColor: Colors.transparent,
                             shadowColor: Colors.transparent,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 20),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50.0)),
                           ),
                           child: const Text(
                             "Sign In",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
@@ -180,26 +195,36 @@ class _MyHomePageState extends State<MyHomePage> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => SignUpPage(toggleTheme: widget.toggleTheme),
+                            builder: (context) =>
+                                SignUpPage(toggleTheme: widget.toggleTheme),
                           ),
                         );
                       },
-                      child: const Text("Don't have an account? Sign Up", style: TextStyle(fontSize: 16)),
+                      child: const Text(
+                        "Don't have an account? Sign Up",
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
           ),
+
+          // Floating Action Button for Theme Toggle
           Positioned(
             top: 20,
             right: 20,
             child: FloatingActionButton(
               onPressed: widget.toggleTheme,
-              backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.grey[800],
+              backgroundColor: Theme.of(context).brightness == Brightness.light
+                  ? Colors.white
+                  : Colors.grey[800],
               child: Icon(
                 Icons.brightness_6,
-                color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+                color: Theme.of(context).brightness == Brightness.light
+                    ? Colors.black
+                    : Colors.white,
               ),
             ),
           ),

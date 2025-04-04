@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sudo_cash/database/database_helper.dart';
 import 'main.dart'; // Import the SignInPage (MyHomePage)
 
@@ -11,6 +12,7 @@ class SignUpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     return Scaffold(
       body: Stack(
         children: [
@@ -98,7 +100,8 @@ class SignUpPage extends StatelessWidget {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => MyHomePage(toggleTheme: toggleTheme),
+                                builder: (context) =>
+                                    MyHomePage(toggleTheme: toggleTheme),
                               ),
                             );
                           },
