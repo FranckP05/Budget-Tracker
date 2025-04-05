@@ -12,7 +12,7 @@ class SignUpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     return Scaffold(
       body: Stack(
         children: [
@@ -164,7 +164,14 @@ class SignUpPage extends StatelessWidget {
               foregroundColor: Theme.of(context).brightness == Brightness.light
                   ? Colors.black
                   : Colors.white,
-              child: const Icon(Icons.brightness_7),
+              child: Icon(
+                Theme.of(context).brightness == Brightness.light
+                    ? Icons.light_mode
+                    : Icons.dark_mode,
+                color: Theme.of(context).brightness == Brightness.light
+                    ? Colors.black
+                    : Colors.white,
+              ),
             ),
           ),
         ],

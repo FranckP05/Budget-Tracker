@@ -26,134 +26,137 @@ final dbhelper = DatabaseHelper.instance;
 class _PasswordBottomSheetState extends State<PasswordBottomSheet> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Set a new Password",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: newPwdController,
-              obscureText: true,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.only(left: 20, right: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50.0),
-                ),
-                hintText: 'Enter your Password',
-                labelText: 'Password',
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Set a new Password",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a valid Password';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 10), // SizedBox for spacing
-            TextFormField(
-              controller: confirmPwdController,
-              obscureText: true,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.only(left: 20, right: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50.0),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: newPwdController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.only(left: 20, right: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50.0),
+                  ),
+                  hintText: 'Enter your Password',
+                  labelText: 'Password',
                 ),
-                hintText: 'Confirm your new Password',
-                labelText: 'Confirm',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a valid Password';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a valid Password';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 10), //Size box for spacing
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 15,
-                    ), // Adjusted padding
-                    backgroundColor: const Color(0xff9c1c0b),
-                    foregroundColor: Colors.white,
+              const SizedBox(height: 10), // SizedBox for spacing
+              TextFormField(
+                controller: confirmPwdController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.only(left: 20, right: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50.0),
                   ),
-                  onPressed: () {
-                    Fluttertoast.showToast(msg: "cancelled");
-                    newPwdController.text = "";
-                    confirmPwdController.text = "";
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Cancel'),
+                  hintText: 'Confirm your new Password',
+                  labelText: 'Confirm',
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 15,
-                    ), // Adjusted padding
-                    backgroundColor: const Color(0xff109710),
-                    foregroundColor: Colors.white,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a valid Password';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10), //Size box for spacing
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 15,
+                      ), // Adjusted padding
+                      backgroundColor: const Color(0xff9c1c0b),
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      Fluttertoast.showToast(msg: "cancelled");
+                      newPwdController.text = "";
+                      confirmPwdController.text = "";
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Cancel'),
                   ),
-                  onPressed: () async{
-                    newPwd = newPwdController.text;
-                    String confirmPwd = confirmPwdController.text;
-                    if (newPwd == confirmPwd) {
-                      if (_formKey.currentState!.validate()) {
-                        await dbhelper.updateUser(widget.userId, widget.username, newPwd);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "Your password is : $newPwd",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 15,
+                      ), // Adjusted padding
+                      backgroundColor: const Color(0xff109710),
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () async {
+                      newPwd = newPwdController.text;
+                      String confirmPwd = confirmPwdController.text;
+                      if (newPwd == confirmPwd) {
+                        if (_formKey.currentState!.validate()) {
+                          await dbhelper.updateUser(
+                              widget.userId, widget.username, newPwd);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Your password is : $newPwd",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
+                              backgroundColor: Colors.green,
+                              duration: const Duration(seconds: 3),
                             ),
-                            backgroundColor: Colors.green,
-                            duration: const Duration(seconds: 3),
-                          ),
-                        );
+                          );
 
-                        Navigator.pop(context); // Close the bottom sheet
-                      }
-                    } else {
-                      if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "Your password doesn't match!",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                          Navigator.pop(context); // Close the bottom sheet
+                        }
+                      } else {
+                        if (_formKey.currentState!.validate()) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Your password doesn't match!",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
+                              backgroundColor: Colors.redAccent,
+                              duration: const Duration(seconds: 3),
                             ),
-                            backgroundColor: Colors.redAccent,
-                            duration: const Duration(seconds: 3),
-                          ),
-                        );
+                          );
+                        }
                       }
-                    }
-                    newPwdController.text = "";
-                    confirmPwdController.text = "";
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          ],
+                      newPwdController.text = "";
+                      confirmPwdController.text = "";
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -221,7 +221,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   ? Colors.white
                   : Colors.grey[800],
               child: Icon(
-                Icons.brightness_6,
+                Theme.of(context).brightness == Brightness.light
+                    ? Icons.light_mode
+                    : Icons.dark_mode,
                 color: Theme.of(context).brightness == Brightness.light
                     ? Colors.black
                     : Colors.white,
