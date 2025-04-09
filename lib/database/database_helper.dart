@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:sudo_cash/models/expense.dart'; // Make sure this path is correct
+import 'package:sudo_cash/models/expense.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -15,17 +15,13 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDB(String filePath) async {
-    final dbPath = await _getDatabasePath();
+    final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
     return await openDatabase(
       path,
       version: 1,
       onCreate: _createDB,
     );
-  }
-
-  Future<String> _getDatabasePath() async {
-    return await getDatabasesPath();
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -41,8 +37,7 @@ class DatabaseHelper {
       CREATE TABLE WALLETS (
         walletID INTEGER PRIMARY KEY AUTOINCREMENT,
         name_wallets TEXT NOT NULL,
-        total REAL NOT NULL,
-        wallet_limit REAL NOT NULL, 
+        wallet_limit REAL NOT NULL,
         color TEXT NOT NULL,
         UserID INTEGER NOT NULL,
         FOREIGN KEY (UserID) REFERENCES USER(UserID) ON DELETE CASCADE
@@ -79,15 +74,13 @@ class DatabaseHelper {
   // USER Methods
   Future<Map<String, dynamic>?> getUserById(int userId) async {
     final db = await database;
-    final result =
-        await db.query('USER', where: 'UserID = ?', whereArgs: [userId]);
+    final result = await db.query('USER', where: 'UserID = ?', whereArgs: [userId]);
     return result.isNotEmpty ? result.first : null;
   }
 
   Future<String> insertUser(String name, String pwd) async {
     final db = await database;
-    bool exists = await userExists(name);
-    if (exists) return "L'utilisateur existe déjà";
+    if (await userExists(name)) return "L'utilisateur existe déjà";
     await db.insert('USER', {'name': name, 'pwd': pwd});
     return "Utilisateur créé avec succès";
   }
@@ -98,36 +91,28 @@ class DatabaseHelper {
     return result.isNotEmpty;
   }
 
-  Future<List<Map<String, dynamic>>> getUsersWithCredentials(
-      String username, String password) async {
+  Future<List<Map<String, dynamic>>> getUsersWithCredentials(String username, String password) async {
     final db = await database;
-    return await db.query('USER',
-        where: 'name = ? AND pwd = ?', whereArgs: [username, password]);
+    return await db.query('USER', where: 'name = ? AND pwd = ?', whereArgs: [username, password]);
   }
 
   Future<int> deletePassword(int userId) async {
     final db = await database;
-    return await db.update('USER', {'pwd': null},
-        where: 'UserID = ?', whereArgs: [userId]);
+    return await db.update('USER', {'pwd': null}, where: 'UserID = ?', whereArgs: [userId]);
   }
 
   Future<int> updateUser(int userId, String name, String pwd) async {
     final db = await database;
-    final existingUsers = await db.query('USER',
-        where: 'name = ? AND UserID != ?', whereArgs: [name, userId]);
-    if (existingUsers.isNotEmpty)
-      throw Exception('Username "$name" is already taken');
-    return await db.update('USER', {'name': name, 'pwd': pwd},
-        where: 'UserID = ?', whereArgs: [userId]);
+    final existingUsers = await db.query('USER', where: 'name = ? AND UserID != ?', whereArgs: [name, userId]);
+    if (existingUsers.isNotEmpty) throw Exception('Username "$name" is already taken');
+    return await db.update('USER', {'name': name, 'pwd': pwd}, where: 'UserID = ?', whereArgs: [userId]);
   }
 
   // WALLETS Methods
-  Future<int> insertWallet(String name, double total, double walletLimit,
-      String color, int userId) async {
+  Future<int> insertWallet(String name, double walletLimit, String color, int userId) async {
     final db = await database;
     return await db.insert('WALLETS', {
       'name_wallets': name,
-      'total': total,
       'wallet_limit': walletLimit,
       'color': color,
       'UserID': userId,
@@ -139,19 +124,18 @@ class DatabaseHelper {
     return await db.query('WALLETS');
   }
 
-  Future<int> updateWallet(int id, String name, double total,
-      double walletLimit, String color) async {
+  Future<int> updateWallet(int id, String name, double walletLimit, String color) async {
     final db = await database;
     return await db.update(
-        'WALLETS',
-        {
-          'name_wallets': name,
-          'total': total,
-          'wallet_limit': walletLimit,
-          'color': color,
-        },
-        where: 'walletID = ?',
-        whereArgs: [id]);
+      'WALLETS',
+      {
+        'name_wallets': name,
+        'wallet_limit': walletLimit,
+        'color': color,
+      },
+      where: 'walletID = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<int> deleteWallet(int id) async {
@@ -162,18 +146,15 @@ class DatabaseHelper {
   // CATEGORY Methods
   Future<int> insertCategory(String name, String color, int walletId) async {
     final db = await database;
-    return await db.insert(
-        'CATEGORY', {'name': name, 'color': color, 'walletID': walletId});
+    return await db.insert('CATEGORY', {'name': name, 'color': color, 'walletID': walletId});
   }
 
   Future<List<Map<String, dynamic>>> getCategoriesByWallet(int walletId) async {
     final db = await database;
-    List<Map<String, dynamic>> categories = await db
-        .query('CATEGORY', where: 'walletID = ?', whereArgs: [walletId]);
-    List<Map<String, dynamic>> mutableCategories = [];
+    final categories = await db.query('CATEGORY', where: 'walletID = ?', whereArgs: [walletId]);
+    final List<Map<String, dynamic>> mutableCategories = [];
     for (var category in categories) {
-      double totalAmount =
-          await getCategoryExpenseTotal(category['categoryID']);
+      final totalAmount = await getCategoryExpenseTotal(category['categoryID'] as int); // Cast to int
       mutableCategories.add({...category, 'totalAmount': totalAmount});
     }
     return mutableCategories;
@@ -181,24 +162,22 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getAllCategories() async {
     final db = await database;
-    return await db.query('CATEGORY');
+    return await db.query('CATEGORY'); // Removed 'classmethod'
   }
 
   Future<int> updateCategory(int id, String name, String color) async {
     final db = await database;
-    return await db.update('CATEGORY', {'name': name, 'color': color},
-        where: 'categoryID = ?', whereArgs: [id]);
+    return await db.update('CATEGORY', {'name': name, 'color': color}, where: 'categoryID = ?', whereArgs: [id]);
   }
 
   Future<int> deleteCategory(int id) async {
     final db = await database;
-    return await db
-        .delete('CATEGORY', where: 'categoryID = ?', whereArgs: [id]);
+    return await db.delete('CATEGORY', where: 'categoryID = ?', whereArgs: [id]);
   }
 
   Future<double> getCategoryExpenseTotal(int categoryId) async {
     final db = await database;
-    List<Map<String, dynamic>> result = await db.rawQuery(
+    final result = await db.rawQuery(
       'SELECT SUM(amount) as total FROM EXPENSE WHERE categoryID = ?',
       [categoryId],
     );
@@ -228,12 +207,43 @@ class DatabaseHelper {
 
   Future<int> updateExpense(Expense expense) async {
     final db = await database;
-    return await db.update('EXPENSE', expense.toMap(),
-        where: 'expenseID = ?', whereArgs: [expense.expenseID]);
+    return await db.update('EXPENSE', expense.toMap(), where: 'expenseID = ?', whereArgs: [expense.expenseID]);
   }
 
   Future<int> deleteExpense(int id) async {
     final db = await database;
     return await db.delete('EXPENSE', where: 'expenseID = ?', whereArgs: [id]);
+  }
+
+  Future<double> getWalletExpenseTotal(int walletId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM EXPENSE WHERE walletID = ?',
+      [walletId],
+    );
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  // Deprecated methods (remove if not needed)
+  Future<int> insertTransaction(String name, String description, double amount, DateTime date, int walletId, int categoryId, String type) async {
+    final db = await database;
+    final map = {
+      'name': name,
+      'description': description,
+      'amount': amount,
+      'date': date.toIso8601String(),
+      'walletID': walletId,
+      'categoryID': categoryId,
+      'expense_limit': 100.0,
+      'icon': null,
+    };
+    return await db.insert('EXPENSE', map);
+  }
+
+  Future<void> _updateWalletBalance(int walletId) async {
+    final db = await database;
+    final result = await db.rawQuery('SELECT SUM(amount) as newTotal FROM EXPENSE WHERE walletID = ?', [walletId]);
+    double newTotal = (result.first['newTotal'] as num?)?.toDouble() ?? 0.0;
+    await db.update('WALLETS', {'total': newTotal}, where: 'walletID = ?', whereArgs: [walletId]);
   }
 }

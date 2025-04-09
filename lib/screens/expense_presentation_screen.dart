@@ -19,12 +19,10 @@ class ExpensePresentationScreen extends StatefulWidget {
   });
 
   @override
-  _ExpensePresentationScreenState createState() =>
-      _ExpensePresentationScreenState();
+  _ExpensePresentationScreenState createState() => _ExpensePresentationScreenState();
 }
 
-class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
-    with TickerProviderStateMixin {
+class _ExpensePresentationScreenState extends State<ExpensePresentationScreen> with TickerProviderStateMixin {
   DateTime? _filterDate;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -32,15 +30,12 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
   @override
   void initState() {
     super.initState();
-    Provider.of<ExpenseProvider>(context, listen: false).fetchExpenses(
-        widget.walletId,
-        widget.categoryId); // Load data on screen open
+    Provider.of<ExpenseProvider>(context, listen: false).fetchExpenses(widget.walletId, widget.categoryId);
     _animationController = AnimationController(
-      duration: Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    _fadeAnimation =
-        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
     _animationController.forward();
   }
 
@@ -58,21 +53,21 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Add an Expense"),
+        title: const Text("Add an Expense"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: InputDecoration(labelText: "Name"),
+              decoration: const InputDecoration(labelText: "Name"),
             ),
             TextField(
               controller: descController,
-              decoration: InputDecoration(labelText: "Description"),
+              decoration: const InputDecoration(labelText: "Description"),
             ),
             TextField(
               controller: amountController,
-              decoration: InputDecoration(labelText: "Amount"),
+              decoration: const InputDecoration(labelText: "Amount"),
               keyboardType: TextInputType.number,
             ),
           ],
@@ -80,7 +75,7 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
+            child: const Text("Cancel"),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -93,8 +88,7 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
               final amount = double.tryParse(amountController.text) ?? 0.0;
 
               if (name.isNotEmpty && amount > 0) {
-                await Provider.of<ExpenseProvider>(context, listen: false)
-                    .addExpense(
+                await Provider.of<ExpenseProvider>(context, listen: false).addExpense(
                   Expense(
                     name: name,
                     date: DateTime.now(),
@@ -102,23 +96,20 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
                     amount: amount,
                     walletID: widget.walletId,
                     categoryID: widget.categoryId,
-                    icon: widget.categoryName.toLowerCase(), // Use category name as icon key
+                    icon: widget.categoryName.toLowerCase(),
                   ),
                 );
-                Navigator.pop(context); // Close dialog after adding
-                setState(() {}); // Refresh screen if necessary
+                Navigator.pop(context, true); // Return true on success
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(
-                          "Invalid input, please fill all fields correctly")),
+                  const SnackBar(content: Text("Invalid input, please fill all fields correctly")),
                 );
               }
             },
             child: Ink(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF00C6FF), Color(0xFF0072FF)], // New gradient colors
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -145,27 +136,26 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
   void _showEditExpenseDialog(Expense expense) {
     final nameController = TextEditingController(text: expense.name);
     final descController = TextEditingController(text: expense.description);
-    final amountController =
-        TextEditingController(text: expense.amount.toString());
+    final amountController = TextEditingController(text: expense.amount.toString());
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Edit Expense"),
+        title: const Text("Edit Expense"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: InputDecoration(labelText: "Name"),
+              decoration: const InputDecoration(labelText: "Name"),
             ),
             TextField(
               controller: descController,
-              decoration: InputDecoration(labelText: "Description"),
+              decoration: const InputDecoration(labelText: "Description"),
             ),
             TextField(
               controller: amountController,
-              decoration: InputDecoration(labelText: "Amount"),
+              decoration: const InputDecoration(labelText: "Amount"),
               keyboardType: TextInputType.number,
             ),
           ],
@@ -173,7 +163,7 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
+            child: const Text("Cancel"),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -186,8 +176,7 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
               final amount = double.tryParse(amountController.text) ?? 0.0;
 
               if (name.isNotEmpty && amount > 0) {
-                await Provider.of<ExpenseProvider>(context, listen: false)
-                    .updateExpense(
+                await Provider.of<ExpenseProvider>(context, listen: false).updateExpense(
                   Expense(
                     expenseID: expense.expenseID,
                     name: name,
@@ -200,13 +189,13 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
                     icon: expense.icon,
                   ),
                 );
-                Navigator.pop(context); // Close dialog after editing
+                Navigator.pop(context, true); // Return true on success
               }
             },
             child: Ink(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF00C6FF), Color(0xFF0072FF)], // New gradient colors
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -237,33 +226,31 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
         backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black,
         foregroundColor: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
         elevation: 1,
-        title: Text("${widget.categoryName} > Expenses", style: TextStyle(fontSize: 18),),
+        title: Text("${widget.categoryName} -> Expenses", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
       ),
       body: Stack(
         children: [
-          // Background image with animation
           FadeTransition(
             opacity: _fadeAnimation,
             child: Container(
               decoration: BoxDecoration(
-                image: DecorationImage(
+                image: const DecorationImage(
                   image: AssetImage('assets/images/background.jpg'),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.3),
+                    Colors.black26,
                     BlendMode.dstATop,
                   ),
                 ),
               ),
             ),
           ),
-          // Main content
           Consumer<ExpenseProvider>(
             builder: (context, expenseProvider, child) {
               if (expenseProvider.totalAmount >= expenseProvider.limit) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text("Expense limit reached!"),
                       backgroundColor: Colors.red,
                     ),
@@ -282,7 +269,6 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
 
               return Column(
                 children: [
-                  // Add button
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: ElevatedButton(
@@ -293,8 +279,8 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
                       onPressed: _showAddExpenseDialog,
                       child: Ink(
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF00C6FF), Color(0xFF0072FF)], // New gradient colors
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -314,13 +300,14 @@ class _ExpensePresentationScreenState extends State<ExpensePresentationScreen>
                       ),
                     ),
                   ),
-                  // Expense list
                   Expanded(
                     child: ExpenseListWidget(
                       expenses: filteredExpenses,
                       onEdit: _showEditExpenseDialog,
-                      onDelete: (id) => expenseProvider.deleteExpense(
-                          id, widget.walletId, widget.categoryId),
+                      onDelete: (id) async {
+                        await expenseProvider.deleteExpense(id, widget.walletId, widget.categoryId);
+                        Navigator.pop(context, true); // Return true on delete
+                      },
                     ),
                   ),
                 ],

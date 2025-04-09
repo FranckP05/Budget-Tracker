@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:sudo_cash/database/database_helper.dart';
 import 'main.dart'; // Import the SignInPage (MyHomePage)
 
@@ -169,7 +168,7 @@ class SignUpPage extends StatelessWidget {
                     ? Icons.light_mode
                     : Icons.dark_mode,
                 color: Theme.of(context).brightness == Brightness.light
-                    ? Colors.black
+                    ? Colors.blueAccent
                     : Colors.white,
               ),
             ),

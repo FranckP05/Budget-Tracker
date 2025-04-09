@@ -4,6 +4,7 @@ import 'package:sudo_cash/database/database_helper.dart';
 import 'package:sudo_cash/providers/expense_provider.dart';
 import 'package:sudo_cash/signUp.dart';
 import 'package:sudo_cash/wallet_page.dart';
+import 'package:flutter/foundation.dart'; // For platform checks
 
 void main() {
   runApp(const MyApp());
@@ -219,13 +220,13 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: widget.toggleTheme,
               backgroundColor: Theme.of(context).brightness == Brightness.light
                   ? Colors.white
-                  : Colors.grey[800],
+                  : Colors.grey[900],
               child: Icon(
                 Theme.of(context).brightness == Brightness.light
                     ? Icons.light_mode
                     : Icons.dark_mode,
                 color: Theme.of(context).brightness == Brightness.light
-                    ? Colors.black
+                    ? Colors.green
                     : Colors.white,
               ),
             ),

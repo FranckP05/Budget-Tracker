@@ -10,7 +10,7 @@ import 'package:sudo_cash/screens/show_wallet_bottomSheet.dart';
 class Wallet {
   final int id;
   final String name;
-  final double totalAmount;
+  final double totalAmount; // Now calculated from expenses
   final double limitAmount;
   final Color color;
 
@@ -63,6 +63,19 @@ class _WalletPageState extends State<WalletPage> {
     const Color(0xFFFFD54F),
   ];
 
+  final Map<String, IconData> walletIcons = {
+    'savings': Icons.savings,
+    'travel': Icons.flight,
+    'shopping': Icons.shopping_bag,
+    'entertainment': Icons.theater_comedy,
+    'bills': Icons.receipt_long,
+    'transport': Icons.directions_bus,
+    'health': Icons.health_and_safety,
+    'education': Icons.book,
+    'misc': Icons.account_balance_wallet,
+  };
+  final IconData defaultIcon = Icons.account_balance_wallet;
+
   @override
   void initState() {
     super.initState();
@@ -73,19 +86,20 @@ class _WalletPageState extends State<WalletPage> {
   // Load wallets from database
   Future<void> _loadWallets() async {
     final walletsData = await dbHelper.getAllWallets();
+    final List<Wallet> loadedWallets = [];
+    for (var data in walletsData) {
+      final limit = data['wallet_limit'] <= 0 ? 1.0 : data['wallet_limit'];
+      final total = await dbHelper.getWalletExpenseTotal(data['walletID']); // Calculate from expenses
+      loadedWallets.add(Wallet(
+        id: data['walletID'],
+        name: data['name_wallets'],
+        totalAmount: total,
+        limitAmount: limit,
+        color: _parseColor(data['color']),
+      ));
+    }
     setState(() {
-      wallets =
-          walletsData.map((data) {
-            final limit =
-                data['wallet_limit'] <= 0 ? 1.0 : data['wallet_limit'];
-            return Wallet(
-              id: data['walletID'],
-              name: data['name_wallets'],
-              totalAmount: data['total'],
-              limitAmount: limit,
-              color: _parseColor(data['color']),
-            );
-          }).toList();
+      wallets = loadedWallets;
     });
   }
 
@@ -118,13 +132,18 @@ class _WalletPageState extends State<WalletPage> {
     return Colors.blue; // Default color fallback
   }
 
+  IconData _getWalletIcon(String walletName) {
+    final nameLower = walletName.toLowerCase().trim();
+    return walletIcons[nameLower] ?? defaultIcon;
+  }
+
   // Get greeting based on current time
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 12) return "Good Morning, $currentUsername";
     if (hour >= 12 && hour < 17) return "Good Afternoon, $currentUsername";
     if (hour >= 17 && hour < 21) return "Good Evening, $currentUsername";
-    return "Good Night, $currentUsername"; // Covers 21:00 to 4:59
+    return "Good Night, $currentUsername"; 
   }
 
   String _engagingMessage() {
@@ -132,7 +151,7 @@ class _WalletPageState extends State<WalletPage> {
     if (hour >= 5 && hour < 12) return "☀️ Make today count!";
     if (hour >= 12 && hour < 17) return "⚡ Stay on top of your goals!";
     if (hour >= 17 && hour < 21) return "Keep moving forward!";
-    return "🌙 Recharge for tomorrow!"; // Covers 21:00 to 4:59
+    return "🌙 Recharge for tomorrow!";
   }
 
   // Get greeting image based on current time
@@ -141,7 +160,7 @@ class _WalletPageState extends State<WalletPage> {
     if (hour >= 5 && hour < 12) return 'assets/images/wakeUp2.png';
     if (hour >= 12 && hour < 17) return 'assets/images/afternoon.jpg';
     if (hour >= 17 && hour < 21) return 'assets/images/moon_2.jpg';
-    return 'assets/images/good_night.jpg'; // Covers 21:00 to 4:59
+    return 'assets/images/good_night.jpg';
   }
 
   // Show bottom sheet to add a wallet
@@ -149,28 +168,26 @@ class _WalletPageState extends State<WalletPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder:
-          (context) => _WalletForm(
-            onSubmit: (name, total, limit, color) async {
-              final colorHex = '#${color.value.toRadixString(16).substring(2)}';
-              try {
-                await dbHelper.insertWallet(
-                  name,
-                  total,
-                  limit,
-                  colorHex,
-                  widget.userId,
-                );
-                await _loadWallets();
-                Navigator.pop(context);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to add wallet: $e')),
-                );
-              }
-            },
-            colors: walletColors,
-          ),
+      builder: (context) => _WalletForm(
+        onSubmit: (name, limit, color) async {
+          final colorHex = '#${color.value.toRadixString(16).substring(2)}';
+          try {
+            await dbHelper.insertWallet(
+              name,
+              limit,
+              colorHex,
+              widget.userId,
+            );
+            await _loadWallets();
+            Navigator.pop(context);
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to add wallet: $e')),
+            );
+          }
+        },
+        colors: walletColors,
+      ),
     );
   }
 
@@ -179,29 +196,27 @@ class _WalletPageState extends State<WalletPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder:
-          (context) => _WalletForm(
-            onSubmit: (name, total, limit, color) async {
-              final colorHex = '#${color.value.toRadixString(16).substring(2)}';
-              try {
-                await dbHelper.updateWallet(
-                  wallets[index].id,
-                  name,
-                  total,
-                  limit,
-                  colorHex,
-                );
-                await _loadWallets();
-                Navigator.pop(context);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to update wallet: $e')),
-                );
-              }
-            },
-            initialWallet: wallets[index],
-            colors: walletColors,
-          ),
+      builder: (context) => _WalletForm(
+        onSubmit: (name, limit, color) async {
+          final colorHex = '#${color.value.toRadixString(16).substring(2)}';
+          try {
+            await dbHelper.updateWallet(
+              wallets[index].id,
+              name,
+              limit,
+              colorHex,
+            );
+            await _loadWallets();
+            Navigator.pop(context);
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to update wallet: $e')),
+            );
+          }
+        },
+        initialWallet: wallets[index],
+        colors: walletColors,
+      ),
     );
   }
 
@@ -209,28 +224,27 @@ class _WalletPageState extends State<WalletPage> {
   void _confirmDelete(int index) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Delete Wallet'),
-            content: const Text('Are you sure you want to delete this wallet?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  await dbHelper.deleteWallet(wallets[index].id);
-                  await _loadWallets();
-                  Navigator.pop(context);
-                },
-                child: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Wallet'),
+        content: const Text('Are you sure you want to delete this wallet?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
+          TextButton(
+            onPressed: () async {
+              await dbHelper.deleteWallet(wallets[index].id);
+              await _loadWallets();
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -243,20 +257,25 @@ class _WalletPageState extends State<WalletPage> {
       appBar: AppBar(
         title: const Text(
           'SudoCash',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25, fontFamily: 'Sora'),
         ),
-        backgroundColor:
-            Theme.of(context).brightness == Brightness.light
-                ? Colors.white
-                : Colors.black,
-        foregroundColor:
-            Theme.of(context).brightness == Brightness.light
-                ? Colors.black
-                : Colors.white,
+        backgroundColor: Theme.of(context).brightness == Brightness.light
+            ? Colors.white
+            : Colors.black,
+        foregroundColor: Theme.of(context).brightness == Brightness.light
+            ? Colors.black
+            : Colors.white,
         elevation: 1,
         actions: [
           IconButton(
-            icon: const Icon(Icons.brightness_6),
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.light
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
             onPressed: widget.toggleTheme,
           ),
           IconButton(
@@ -265,13 +284,12 @@ class _WalletPageState extends State<WalletPage> {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder:
-                      (context) => Settings(
-                        username: currentUsername,
-                        password: widget.password,
-                        userId: widget.userId,
-                        onBack: _loadUsername, // Pass callback
-                      ),
+                  builder: (context) => Settings(
+                    username: currentUsername,
+                    password: widget.password,
+                    userId: widget.userId,
+                    onBack: _loadUsername,
+                  ),
                 ),
               );
               if (result != null && result is String) {
@@ -287,7 +305,6 @@ class _WalletPageState extends State<WalletPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Greeting Section
             Padding(
               padding: const EdgeInsets.all(14.0),
               child: Column(
@@ -310,8 +327,6 @@ class _WalletPageState extends State<WalletPage> {
                 ],
               ),
             ),
-
-            // Image Section
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: ClipRRect(
@@ -327,8 +342,6 @@ class _WalletPageState extends State<WalletPage> {
                 ),
               ),
             ),
-
-            // "My Wallets" Title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: const Text(
@@ -336,8 +349,6 @@ class _WalletPageState extends State<WalletPage> {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
               ),
             ),
-
-            // Wallets Grid
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: GridView.builder(
@@ -350,30 +361,25 @@ class _WalletPageState extends State<WalletPage> {
                   childAspectRatio: 0.8,
                 ),
                 itemCount: wallets.length,
-                itemBuilder:
-                    (context, index) => GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    CategoryPage(wallet: wallets[index]),
-                          ),
-                        );
-                      },
-                      onLongPress: () => _showWalletOptions(index),
-                      child: _WalletCard(wallet: wallets[index]),
-                    ),
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CategoryPage(wallet: wallets[index]),
+                      ),
+                    );
+                    if (result == true) {
+                      await _loadWallets(); // Refresh wallets after expense change
+                    }
+                  },
+                  onLongPress: () => _showWalletOptions(index),
+                  child: _WalletCard(wallet: wallets[index], getIcon: _getWalletIcon),
+                ),
               ),
             ),
-
-            // Add Wallet Button
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 16.0,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
               child: Container(
                 width: double.infinity,
                 height: 45,
@@ -412,58 +418,51 @@ class _WalletPageState extends State<WalletPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-                    context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16.0),
-                        topRight: Radius.circular(16.0),
-                      ),
-                    ),
-                    isScrollControlled: true,
-                    builder: (context) {
-                      return ShowWalletBottomSheet();
-                    },
-                  );
+        onPressed: () async {
+          final result = await showModalBottomSheet(
+            context: context,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16.0),
+                topRight: Radius.circular(16.0),
+              ),
+            ),
+            isScrollControlled: true,
+            builder: (context) => ShowWalletBottomSheet(),
+          );
+          if (result == true) {
+            await _loadWallets(); // Refresh wallets if expense added
+          }
         },
         child: const Icon(Icons.add_circle_outline),
       ),
     );
   }
 
-  // Show options for editing or deleting a wallet
   void _showWalletOptions(int index) {
     showModalBottomSheet(
       context: context,
-      builder:
-          (context) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.edit, color: Colors.deepPurpleAccent),
-                title: const Text(
-                  'Edit',
-                  style: TextStyle(color: Colors.deepPurpleAccent),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showEditWalletSheet(index);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _confirmDelete(index);
-                },
-              ),
-            ],
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.edit, color: Colors.deepPurpleAccent),
+            title: const Text('Edit', style: TextStyle(color: Colors.deepPurpleAccent)),
+            onTap: () {
+              Navigator.pop(context);
+              _showEditWalletSheet(index);
+            },
           ),
+          ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: const Text('Delete', style: TextStyle(color: Colors.red)),
+            onTap: () {
+              Navigator.pop(context);
+              _confirmDelete(index);
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -473,8 +472,9 @@ class _WalletPageState extends State<WalletPage> {
 // ============================================================================
 class _WalletCard extends StatelessWidget {
   final Wallet wallet;
+  final IconData Function(String) getIcon;
 
-  const _WalletCard({required this.wallet});
+  const _WalletCard({required this.wallet, required this.getIcon});
 
   Color _getProgressColor(double ratio) {
     if (ratio <= 0.5) return Colors.green;
@@ -484,10 +484,9 @@ class _WalletCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ratio =
-        wallet.limitAmount > 0
-            ? (wallet.totalAmount / wallet.limitAmount).clamp(0.0, 1.0)
-            : 0.0;
+    final ratio = wallet.limitAmount > 0
+        ? (wallet.totalAmount / wallet.limitAmount).clamp(0.0, 1.0)
+        : 0.0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -503,9 +502,9 @@ class _WalletCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Center(
+            Center(
               child: Icon(
-                Icons.account_balance_wallet,
+                getIcon(wallet.name), // Dynamic icon
                 size: 40,
                 color: Colors.white70,
               ),
@@ -519,27 +518,29 @@ class _WalletCard extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 12),
             Text(
-              '\$${wallet.totalAmount.toStringAsFixed(2)}',
+              'Current: \$${wallet.totalAmount.toStringAsFixed(2)}',
               style: const TextStyle(fontSize: 16, color: Colors.white70),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(
-                  child: LinearProgressIndicator(
+                SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
                     value: ratio,
+                    strokeWidth: 4,
                     backgroundColor: Colors.white24,
                     valueColor: AlwaysStoppedAnimation<Color>(
                       _getProgressColor(ratio),
                     ),
-                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '\$${wallet.limitAmount.toStringAsFixed(2)}',
+                  'limit: \$${wallet.limitAmount.toStringAsFixed(2)}',
                   style: const TextStyle(color: Colors.white70),
                 ),
               ],
@@ -555,7 +556,7 @@ class _WalletCard extends StatelessWidget {
 // Wallet Form Widget (Bottom Sheet)
 // ============================================================================
 class _WalletForm extends StatefulWidget {
-  final Function(String, double, double, Color) onSubmit;
+  final Function(String, double, Color) onSubmit; // Removed total
   final Wallet? initialWallet;
   final List<Color> colors;
 
@@ -572,22 +573,14 @@ class _WalletForm extends StatefulWidget {
 class __WalletFormState extends State<_WalletForm> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  late TextEditingController _totalController;
   late TextEditingController _limitController;
   late Color _selectedColor;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(
-      text: widget.initialWallet?.name ?? '',
-    );
-    _totalController = TextEditingController(
-      text: widget.initialWallet?.totalAmount.toStringAsFixed(2) ?? '',
-    );
-    _limitController = TextEditingController(
-      text: widget.initialWallet?.limitAmount.toStringAsFixed(2) ?? '',
-    );
+    _nameController = TextEditingController(text: widget.initialWallet?.name ?? '');
+    _limitController = TextEditingController(text: widget.initialWallet?.limitAmount.toStringAsFixed(2) ?? '');
     _selectedColor = widget.initialWallet?.color ?? widget.colors.first;
   }
 
@@ -614,24 +607,14 @@ class __WalletFormState extends State<_WalletForm> {
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Wallet Name'),
-              validator:
-                  (value) => value!.isEmpty ? 'Please enter a name' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _totalController,
-              decoration: const InputDecoration(labelText: 'Total Amount'),
-              keyboardType: TextInputType.number,
-              validator:
-                  (value) => value!.isEmpty ? 'Please enter an amount' : null,
+              validator: (value) => value!.isEmpty ? 'Please enter a name' : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _limitController,
               decoration: const InputDecoration(labelText: 'Limit Amount'),
               keyboardType: TextInputType.number,
-              validator:
-                  (value) => value!.isEmpty ? 'Please enter a limit' : null,
+              validator: (value) => value!.isEmpty ? 'Please enter a limit' : null,
             ),
             const SizedBox(height: 16),
             Text('Choose Color', style: Theme.of(context).textTheme.bodyMedium),
@@ -642,25 +625,20 @@ class __WalletFormState extends State<_WalletForm> {
                 scrollDirection: Axis.horizontal,
                 itemCount: widget.colors.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder:
-                    (context, index) => GestureDetector(
-                      onTap:
-                          () => setState(
-                            () => _selectedColor = widget.colors[index],
-                          ),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: widget.colors[index],
-                          shape: BoxShape.circle,
-                          border:
-                              _selectedColor == widget.colors[index]
-                                  ? Border.all(color: Colors.white, width: 2)
-                                  : null,
-                        ),
-                      ),
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () => setState(() => _selectedColor = widget.colors[index]),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: widget.colors[index],
+                      shape: BoxShape.circle,
+                      border: _selectedColor == widget.colors[index]
+                          ? Border.all(color: Colors.white, width: 2)
+                          : null,
                     ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -688,23 +666,18 @@ class __WalletFormState extends State<_WalletForm> {
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       try {
-        final total = double.parse(_totalController.text);
         final limit = double.parse(_limitController.text);
-        if (total < 0 || limit <= 0) {
+        if (limit <= 0) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Total must be non-negative and limit must be positive',
-              ),
-            ),
+            const SnackBar(content: Text('Limit must be positive')),
           );
           return;
         }
-        widget.onSubmit(_nameController.text, total, limit, _selectedColor);
+        widget.onSubmit(_nameController.text, limit, _selectedColor);
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error adding wallet: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error adding wallet: $e')),
+        );
       }
     }
   }
@@ -712,7 +685,6 @@ class __WalletFormState extends State<_WalletForm> {
   @override
   void dispose() {
     _nameController.dispose();
-    _totalController.dispose();
     _limitController.dispose();
     super.dispose();
   }

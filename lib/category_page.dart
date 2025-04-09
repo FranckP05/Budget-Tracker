@@ -120,7 +120,7 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                       '#${selectedColor.value.toRadixString(16).substring(2)}',
                       widget.wallet.id,
                     );
-                    _loadCategories();
+                    await _loadCategories(); // Refresh categories
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Category added successfully"), backgroundColor: Colors.green),
@@ -156,7 +156,7 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
             title: const Text("Delete Category"),
             onTap: () async {
               await dbHelper.deleteCategory(categories[index]['categoryID']);
-              _loadCategories();
+              await _loadCategories(); // Refresh categories
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Category deleted successfully"), backgroundColor: Colors.green),
@@ -229,7 +229,7 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                       name,
                       '#${selectedColor.value.toRadixString(16).substring(2)}',
                     );
-                    _loadCategories();
+                    await _loadCategories(); // Refresh categories
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Category updated successfully"), backgroundColor: Colors.green),
@@ -254,10 +254,9 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
         backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Colors.black,
         foregroundColor: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
         elevation: 1,
-        title: Text(widget.wallet.name),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
+        title: Text(widget.wallet.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+        bottom: const TabBar(
+          tabs: [
             Tab(icon: Icon(Icons.category), text: "Categories"),
             Tab(icon: Icon(Icons.bar_chart), text: "Statistics"),
           ],
@@ -333,7 +332,8 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                             ),
                           );
                           if (result == true) {
-                            _loadCategories();
+                            await _loadCategories(); // Refresh categories after expense change
+                            Navigator.pop(context, true); // Signal WalletPage to refresh
                           }
                         },
                         onLongPress: () => _showCategoryOptions(index),
@@ -372,11 +372,9 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
             const SnackBar(content: Text('Expense form not implemented yet')),
           );
         },
-        child: Column(
+        child: const Column(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.add),
-          ],
+          children: [Icon(Icons.add)],
         ),
       ),
     );
