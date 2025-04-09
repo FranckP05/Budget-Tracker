@@ -1,3 +1,5 @@
 # sudo_cash
 
-A new Flutter project.
+This is the first stable, but not complete version of the app. 
+
+Some changes are upcoming.
